@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookShelf - Your Personal Digital Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2070&auto=format&fit=crop&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center;
+            background-size: cover;
+            background-attachment: fixed;
+            position: relative;
+            z-index: 0;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                circle 450px at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                rgba(0, 0, 0, 0.3) 0%,
+                rgba(0, 0, 0, 0.8) 100%
+            );
+            z-index: -1;
+            pointer-events: none;
+        }
+        .font-playfair {
+            font-family: 'Playfair Display', serif;
+        }
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .filter-btn.active {
+            background-color: #2563eb;
+            color: white;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <!-- Landing Page View -->
+    <div id="landingPage">
+        <header class="bg-white/90 backdrop-blur-sm shadow-md sticky top-0 z-50">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="font-playfair text-2xl font-bold text-gray-800">BookShelf</div>
+                <button class="enter-library-btn bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:bg-blue-700 transition">
+                    Enter Library
+                </button>
+            </div>
+        </header>
+
+        <section id="hero" class="text-white py-24 md:py-40">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="font-playfair text-4xl md:text-6xl font-bold leading-tight mb-4">Discover Your Next Favorite Book.</h1>
+                <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+                    Welcome to BookShelf, your personal digital library. Organize your collection, discover new reads with our AI assistant, and immerse yourself in a world of stories.
+                </p>
+                <button class="enter-library-btn bg-purple-600 text-white font-bold py-4 px-8 rounded-lg shadow-xl hover:bg-purple-700 transition-transform transform hover:scale-105 text-lg">
+                    Explore Your Collection
+                </button>
+            </div>
+        </section>
+
+        <section id="features" class="py-20 bg-gray-100 text-gray-800">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="font-playfair text-3xl md:text-4xl font-bold">Why You'll Love BookShelf</h2>
+                    <p class="text-gray-600 mt-2">Everything you need to manage and grow your digital library.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    <div class="feature-card bg-white p-8 rounded-xl shadow-lg text-center">
+                        <div class="bg-blue-100 text-blue-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">AI-Powered Discovery</h3>
+                        <p class="text-gray-600">Tell our AI what you're in the mood for, and watch as it populates your library with perfect recommendations.</p>
+                    </div>
+                    <div class="feature-card bg-white p-8 rounded-xl shadow-lg text-center">
+                        <div class="bg-green-100 text-green-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-6"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h2zm0 0v1.5M7 14h.01M17 14h.01M17 10h.01M17 7h.01M14 7h.01M14 10h.01M14 14h.01M10 14h.01M10 10h.01M10 7h.01" /></svg></div>
+                        <h3 class="text-xl font-bold mb-3">Infinite Organization</h3>
+                        <p class="text-gray-600">Create your own custom categories to organize your collection exactly the way you want. Filter and find with ease.</p>
+                    </div>
+                    <div class="feature-card bg-white p-8 rounded-xl shadow-lg text-center">
+                         <div class="bg-purple-100 text-purple-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-6"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg></div>
+                        <h3 class="text-xl font-bold mb-3">Immersive Interface</h3>
+                        <p class="text-gray-600">Explore your library with a stunning, interactive background that reacts to your every move, making your visit a unique experience.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="bg-gray-800 text-white py-8">
+            <div class="container mx-auto px-6 text-center">
+                <p>&copy; 2025 BookShelf. All Rights Reserved.</p>
+                <p class="text-sm text-gray-400 mt-2">Created with passion for book lovers.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Main Library App View (Initially Hidden) -->
+    <div id="libraryApp" class="hidden">
+        <nav class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-10">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="font-bold text-xl text-blue-600">BookShelf</span>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <button id="homeBtn" class="text-gray-700 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Home</button>
+                            <a href="#" class="text-gray-700 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium">About</a>
+                            <a href="#" class="text-gray-700 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto px-4 py-8">
+            <header class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold text-white">My Personal Book Collection</h1>
+                <p class="text-lg text-gray-300 mt-2">A collection of my favorite reads.</p>
+            </header>
+
+            <div class="bg-white/10 backdrop-blur-md p-6 rounded-xl shadow-lg mb-12 max-w-2xl mx-auto">
+                <h2 class="text-2xl font-bold text-white mb-4 text-center">AI Assistant</h2>
+                <p class="text-gray-300 text-center mb-4">Tell the AI what books you'd like to add. (e.g., "5 classic philosophy books")</p>
+                <div class="flex gap-2">
+                    <input type="text" id="aiPrompt" class="w-full px-4 py-2 border border-gray-500 bg-gray-900/50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your request...">
+                    <button id="aiAddBtn" class="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-purple-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 flex items-center justify-center">
+                        <span id="aiBtnText">Add</span>
+                        <div id="aiLoader" class="loader hidden ml-2"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-center items-center gap-6 mb-12">
+                 <button id="addBookBtn" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 order-1 md:order-2">
+                    Add New Book Manually
+                </button>
+                <div id="filterContainer" class="flex flex-wrap justify-center gap-2 order-2 md:order-1"></div>
+            </div>
+
+            <div id="bookList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"></div>
+        </div>
+
+        <div id="bookModal" class="fixed inset-0 bg-black bg-opacity-60 modal-overlay flex items-center justify-center p-4 hidden">
+            <div id="modalContent" class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8 relative transform scale-95 text-gray-800">
+                <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+                <h2 id="modalTitle" class="text-3xl font-bold mb-2"></h2>
+                <p id="modalAuthor" class="text-xl text-gray-700 mb-4"></p>
+                <p id="modalCategory" class="text-sm text-white bg-blue-500 inline-block px-3 py-1 rounded-full mb-6"></p>
+                <p id="modalDescription" class="text-gray-600"></p>
+            </div>
+        </div>
+
+        <div id="addBookFormContainer" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8">
+                <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Add a New Book</h2>
+                <form id="addBookForm">
+                    <div class="mb-4">
+                        <label for="title" class="block text-gray-700 font-medium mb-2">Book Title</label>
+                        <input type="text" id="title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="author" class="block text-gray-700 font-medium mb-2">Author</label>
+                        <input type="text" id="author" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                     <div class="mb-4">
+                        <label for="category" class="block text-gray-700 font-medium mb-2">Category (or add a new one)</label>
+                        <input list="category-list" id="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <datalist id="category-list"></datalist>
+                    </div>
+                    <div class="mb-6">
+                        <label for="description" class="block text-gray-700 font-medium mb-2">Description (Optional)</label>
+                        <textarea id="description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-4">
+                        <button type="button" id="cancelAddBtn" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition">Cancel</button>
+                        <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Add Book</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- View Switching ---
+            const landingPage = document.getElementById('landingPage');
+            const libraryApp = document.getElementById('libraryApp');
+            const enterLibraryBtns = document.querySelectorAll('.enter-library-btn');
+            const homeBtn = document.getElementById('homeBtn');
+
+            function showLibrary() {
+                landingPage.classList.add('hidden');
+                libraryApp.classList.remove('hidden');
+            }
+
+            function showLandingPage() {
+                libraryApp.classList.add('hidden');
+                landingPage.classList.remove('hidden');
+            }
+
+            enterLibraryBtns.forEach(btn => btn.addEventListener('click', showLibrary));
+            homeBtn.addEventListener('click', showLandingPage);
+
+
+            // --- Library App Logic ---
+            const bookList = document.getElementById('bookList');
+            const addBookBtn = document.getElementById('addBookBtn');
+            const addBookFormContainer = document.getElementById('addBookFormContainer');
+            const addBookForm = document.getElementById('addBookForm');
+            const cancelAddBtn = document.getElementById('cancelAddBtn');
+            const bookModal = document.getElementById('bookModal');
+            const modalContent = document.getElementById('modalContent');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalAuthor = document.getElementById('modalAuthor');
+            const modalCategory = document.getElementById('modalCategory');
+            const modalDescription = document.getElementById('modalDescription');
+            const filterContainer = document.getElementById('filterContainer');
+            const aiPrompt = document.getElementById('aiPrompt');
+            const aiAddBtn = document.getElementById('aiAddBtn');
+            const aiBtnText = document.getElementById('aiBtnText');
+            const aiLoader = document.getElementById('aiLoader');
+
+            let currentFilter = 'All';
+            let books = [
+                { title: "Steve Jobs", author: "Walter Isaacson", category: "Biography", description: "The exclusive biography of Steve Jobs, based on more than forty interviews with Jobs conducted over two years." },
+                { title: "The Diary of a Young Girl", author: "Anne Frank", category: "Biography", description: "The writings from the Dutch-language diary kept by Anne Frank while she was in hiding for two years with her family during the Nazi occupation of the Netherlands." },
+                { title: "The Autobiography of Malcolm X", author: "Malcolm X, Alex Haley", category: "Autobiography", description: "The story of Malcolm X, an American Muslim minister and human rights activist who was a popular figure during the civil rights movement." },
+                { title: "Long Walk to Freedom", author: "Nelson Mandela", category: "Autobiography", description: "An autobiography written by South African President Nelson Mandela, and first published in 1994 by Little Brown & Co." },
+                { title: "The 7 Habits of Highly Effective People", author: "Stephen R. Covey", category: "Personal Development", description: "A business and self-help book written by Stephen R. Covey." },
+                { title: "Atomic Habits", author: "James Clear", category: "Personal Development", description: "An easy & proven way to build good habits & break bad ones." },
+                { title: "Sapiens: A Brief History of Humankind", author: "Yuval Noah Harari", category: "History", description: "A book by Yuval Noah Harari, first published in Hebrew in Israel in 2011." },
+                { title: "Guns, Germs, and Steel", author: "Jared Diamond", category: "History", description: "A 1997 transdisciplinary non-fiction book by Jared Diamond." },
+                { title: "Meditations", author: "Marcus Aurelius", category: "Philosophy", description: "A series of personal writings by Marcus Aurelius, Roman Emperor from 161 to 180 AD." },
+                { title: "The Art of War", author: "Sun Tzu", category: "Philosophy", description: "An ancient Chinese military treatise dating from the Late Spring and Autumn Period." },
+                { title: "Thinking, Fast and Slow", author: "Daniel Kahneman", category: "Business and Economics", description: "A 2011 book by psychologist Daniel Kahneman." },
+                { title: "The Wealth of Nations", author: "Adam Smith", category: "Business and Economics", description: "The magnum opus of the Scottish economist and moral philosopher Adam Smith." },
+                { title: "The Intelligent Investor", author: "Benjamin Graham", category: "Finance", description: "A widely acclaimed book on value investing." },
+                { title: "Rich Dad Poor Dad", author: "Robert T. Kiyosaki", category: "Finance", description: "A 1997 book written by Robert Kiyosaki and Sharon Lechter." }
+            ];
+            
+            const cardColors = ['from-sky-100 to-blue-200', 'from-green-100 to-emerald-200', 'from-purple-100 to-indigo-200', 'from-yellow-100 to-amber-200', 'from-pink-100 to-rose-200', 'from-red-100 to-orange-200'];
+
+            function renderBooks() {
+                bookList.innerHTML = '';
+                const filteredBooks = books.filter(book => currentFilter === 'All' || book.category === currentFilter);
+                if (filteredBooks.length === 0) {
+                    bookList.innerHTML = `<p class="text-gray-300 col-span-full text-center">No books found in this category.</p>`;
+                    return;
+                }
+                filteredBooks.forEach((book) => {
+                    const card = document.createElement('div');
+                    const gradient = cardColors[books.indexOf(book) % cardColors.length];
+                    card.className = `bg-gradient-to-br ${gradient} rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 hover:shadow-2xl hover:-rotate-2 transition-all duration-300 cursor-pointer`;
+                    card.dataset.bookTitle = book.title;
+                    card.innerHTML = `<div class="p-6 text-gray-800"><h3 class="text-xl font-bold text-gray-900 mb-2 truncate">${book.title}</h3><p class="text-gray-700 font-medium">${book.author}</p><p class="text-xs font-semibold text-blue-800 mt-3 inline-block bg-blue-200 px-2 py-1 rounded-full">${book.category}</p></div>`;
+                    card.addEventListener('click', () => openModal(book.title));
+                    bookList.appendChild(card);
+                });
+            }
+
+            function renderFilters() {
+                const categories = ['All', ...new Set(books.map(book => book.category))];
+                filterContainer.innerHTML = '';
+                categories.forEach(category => {
+                    const button = document.createElement('button');
+                    button.className = 'filter-btn text-white font-medium py-2 px-4 rounded-lg transition hover:bg-blue-500';
+                    if (category === currentFilter) button.classList.add('active');
+                    button.textContent = category;
+                    button.addEventListener('click', () => {
+                        currentFilter = category;
+                        renderFilters();
+                        renderBooks();
+                    });
+                    filterContainer.appendChild(button);
+                });
+            }
+
+            function populateCategoryDatalist() {
+                const categoryList = document.getElementById('category-list');
+                categoryList.innerHTML = '';
+                const categories = [...new Set(books.map(book => book.category))];
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    categoryList.appendChild(option);
+                });
+            }
+
+            function openModal(title) {
+                const book = books.find(b => b.title === title);
+                if (!book) return;
+                modalTitle.textContent = book.title;
+                modalAuthor.textContent = `by ${book.author}`;
+                modalCategory.textContent = book.category;
+                modalDescription.textContent = book.description || "No description provided.";
+                bookModal.classList.remove('hidden');
+                bookModal.classList.add('flex');
+                setTimeout(() => {
+                    bookModal.classList.remove('opacity-0');
+                    modalContent.classList.remove('scale-95');
+                }, 10);
+            }
+
+            function closeModal() {
+                bookModal.classList.add('opacity-0');
+                modalContent.classList.add('scale-95');
+                setTimeout(() => {
+                    bookModal.classList.add('hidden');
+                    bookModal.classList.remove('flex');
+                }, 300);
+            }
+
+            function showAddForm() {
+                populateCategoryDatalist();
+                addBookFormContainer.classList.remove('hidden');
+            }
+
+            function hideAddForm() {
+                addBookForm.reset();
+                addBookFormContainer.classList.add('hidden');
+            }
+
+            function handleAddBook(e) {
+                e.preventDefault();
+                const title = document.getElementById('title').value.trim();
+                const author = document.getElementById('author').value.trim();
+                const category = document.getElementById('category').value.trim();
+                const description = document.getElementById('description').value.trim();
+                if (title && author && category) {
+                    books.push({ title, author, category, description });
+                    if (currentFilter !== 'All' && currentFilter !== category) {
+                        currentFilter = category;
+                    }
+                    renderFilters();
+                    renderBooks();
+                    hideAddForm();
+                }
+            }
+
+            async function handleAiAdd() {
+                const prompt = aiPrompt.value.trim();
+                if (!prompt) return;
+                aiBtnText.classList.add('hidden');
+                aiLoader.classList.remove('hidden');
+                aiAddBtn.disabled = true;
+                try {
+                    const chatHistory = [{ role: "user", parts: [{ text: `Generate a list of books based on the following prompt: "${prompt}". Provide the response as a JSON array of objects, each with "title", "author", "category", and "description" fields.` }] }];
+                    const payload = {
+                        contents: chatHistory,
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: { "title": { "type": "STRING" }, "author": { "type": "STRING" }, "category": { "type": "STRING" }, "description": { "type": "STRING" } },
+                                    required: ["title", "author", "category", "description"]
+                                }
+                            }
+                        }
+                    };
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates?.[0]?.content?.parts?.[0]) {
+                        const newBooks = JSON.parse(result.candidates[0].content.parts[0].text);
+                        newBooks.forEach(newBook => {
+                            if (!books.some(book => book.title.toLowerCase() === newBook.title.toLowerCase())) {
+                                books.push(newBook);
+                            }
+                        });
+                        renderFilters();
+                        renderBooks();
+                        aiPrompt.value = '';
+                    } else {
+                        console.error("Unexpected API response structure:", result);
+                        alert("The AI returned an unexpected response.");
+                    }
+                } catch (error) {
+                    console.error('Error fetching from Gemini API:', error);
+                    alert('An error occurred while fetching books from the AI.');
+                } finally {
+                    aiBtnText.classList.remove('hidden');
+                    aiLoader.classList.add('hidden');
+                    aiAddBtn.disabled = false;
+                }
+            }
+
+            addBookBtn.addEventListener('click', showAddForm);
+            cancelAddBtn.addEventListener('click', hideAddForm);
+            addBookForm.addEventListener('submit', handleAddBook);
+            closeModalBtn.addEventListener('click', closeModal);
+            bookModal.addEventListener('click', (e) => { if (e.target === bookModal) closeModal(); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !bookModal.classList.contains('hidden')) closeModal(); });
+            aiAddBtn.addEventListener('click', handleAiAdd);
+            aiPrompt.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAiAdd(); });
+
+            document.addEventListener('mousemove', (e) => {
+                document.body.style.setProperty('--mouse-x', e.clientX + 'px');
+                document.body.style.setProperty('--mouse-y', e.clientY + 'px');
+            });
+
+            renderFilters();
+            renderBooks();
+        });
+    </script>
+</body>
+</html>
