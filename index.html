@@ -63,6 +63,10 @@
         .book-card:hover .delete-btn {
             opacity: 1;
         }
+        .verse.highlighted {
+            background-color: rgba(250, 204, 21, 0.4); /* yellow-400 with opacity */
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
@@ -229,7 +233,16 @@
                 <p class="text-lg text-gray-300 mt-2">Select a topic to explore relevant books of the Bible.</p>
             </header>
             
-            <div id="scriptureFilterContainer" class="flex flex-wrap justify-center gap-2 mb-10"></div>
+            <div class="flex flex-col md:flex-row justify-center items-center gap-4 mb-10">
+                <div id="scriptureFilterContainer" class="flex flex-wrap justify-center gap-2"></div>
+                <div>
+                    <select id="versionSelect" class="bg-white/20 text-white p-2 rounded-lg border-2 border-transparent hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <option value="kjv" class="text-black">King James Version</option>
+                        <option value="web" class="text-black">World English Bible</option>
+                        <option value="bbe" class="text-black">Bible in Basic English</option>
+                    </select>
+                </div>
+            </div>
 
             <div>
                 <h2 id="oldTestamentTitle" class="text-3xl font-bold text-white border-b-2 border-blue-400 pb-2 mb-6">Old Testament</h2>
@@ -497,7 +510,54 @@
             }
 
             async function handleAiAdd() {
-                // AI logic remains the same
+                const prompt = aiPrompt.value.trim();
+                if (!prompt) return;
+                aiBtnText.classList.add('hidden');
+                aiLoader.classList.remove('hidden');
+                aiAddBtn.disabled = true;
+                try {
+                    const chatHistory = [{ role: "user", parts: [{ text: `Generate a list of books based on the following prompt: "${prompt}". Provide the response as a JSON array of objects, each with "title", "author", "category", "description", and an optional "pdfLink" field for a relevant online preview or PDF.` }] }];
+                    const payload = {
+                        contents: chatHistory,
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: { "title": { "type": "STRING" }, "author": { "type": "STRING" }, "category": { "type": "STRING" }, "description": { "type": "STRING" }, "pdfLink": {"type": "STRING"} },
+                                    required: ["title", "author", "category", "description"]
+                                }
+                            }
+                        }
+                    };
+                    const apiKey = "AIzaSyD6kZtsCBwNR1FVRFOTiEvfjhOy4TJFpIM";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates?.[0]?.content?.parts?.[0]) {
+                        const newBooks = JSON.parse(result.candidates[0].content.parts[0].text);
+                        newBooks.forEach(newBook => {
+                            if (!books.some(book => book.title.toLowerCase() === newBook.title.toLowerCase())) {
+                                books.push(newBook);
+                            }
+                        });
+                        renderFilters();
+                        renderBooks();
+                        aiPrompt.value = '';
+                    } else {
+                        console.error("Unexpected API response structure:", result);
+                        alert("The AI returned an unexpected response.");
+                    }
+                } catch (error) {
+                    console.error('Error fetching from Gemini API:', error);
+                    alert('An error occurred while fetching books from the AI.');
+                } finally {
+                    aiBtnText.classList.remove('hidden');
+                    aiLoader.classList.add('hidden');
+                    aiAddBtn.disabled = false;
+                }
             }
             
             // --- Scripture Study Logic ---
@@ -507,8 +567,10 @@
             const scriptureFilterContainer = document.getElementById('scriptureFilterContainer');
             const oldTestamentTitle = document.getElementById('oldTestamentTitle');
             const newTestamentTitle = document.getElementById('newTestamentTitle');
+            const versionSelect = document.getElementById('versionSelect');
 
             let currentScriptureCategory = 'All Books';
+            let currentBibleVersion = 'kjv';
 
             const scriptureCategories = {
                 "Finance & Stewardship": ["Proverbs", "Malachi", "Luke", "2 Corinthians", "Haggai"],
@@ -598,13 +660,13 @@
                 contentDiv.innerHTML = '<div class="flex justify-center items-center h-48"><div class="loader"></div></div>';
                 
                 try {
-                    const response = await fetch(`https://bible-api.com/${bookName}+${chapterNumber}`);
+                    const response = await fetch(`https://bible-api.com/${bookName}+${chapterNumber}?translation=${currentBibleVersion}`);
                     if (!response.ok) throw new Error('Network response was not ok.');
                     const data = await response.json();
                     
-                    let versesHTML = `<h3 class="text-2xl font-bold mb-4">${data.reference}</h3><div class="space-y-4">`;
+                    let versesHTML = `<h3 class="text-2xl font-bold mb-4">${data.reference} (${data.translation_name})</h3><div class="space-y-2">`;
                     data.verses.forEach(verse => {
-                        versesHTML += `<p><strong class="text-blue-700 pr-2">${verse.verse}.</strong>${verse.text.trim()}</p>`;
+                        versesHTML += `<p class="verse p-1 cursor-pointer"><strong class="text-blue-700 pr-2">${verse.verse}.</strong>${verse.text.trim()}</p>`;
                     });
                     versesHTML += `</div>`;
                     contentDiv.innerHTML = versesHTML;
@@ -631,6 +693,14 @@
                     const bookName = scriptureModal.querySelector('h2').textContent;
                     fetchAndDisplayChapter(bookName, chapterBtn.dataset.chapter);
                 }
+                const verse = e.target.closest('.verse');
+                if (verse) {
+                    verse.classList.toggle('highlighted');
+                }
+            });
+            
+            versionSelect.addEventListener('change', (e) => {
+                currentBibleVersion = e.target.value;
             });
 
             // --- Event Listeners ---
