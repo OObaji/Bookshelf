@@ -67,12 +67,6 @@
             background-color: rgba(250, 204, 21, 0.4); /* yellow-400 with opacity */
             border-radius: 4px;
         }
-        .book-card.is-read {
-            opacity: 0.7;
-        }
-        .book-card.is-read .read-badge {
-            display: flex;
-        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
@@ -142,7 +136,7 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
-                        <button id="logoBtnLibrary" class="font-bold text-xl text-blue-600">BookShelf</button>
+                        <span class="font-bold text-xl text-blue-600">BookShelf</span>
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-4">
@@ -189,7 +183,7 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
-                        <button id="logoBtnAbout" class="font-bold text-xl text-blue-600">BookShelf</button>
+                        <span class="font-bold text-xl text-blue-600">BookShelf</span>
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-4">
@@ -222,7 +216,7 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
-                        <button id="logoBtnScripture" class="font-bold text-xl text-blue-600">BookShelf</button>
+                        <span class="font-bold text-xl text-blue-600">BookShelf</span>
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-4">
@@ -269,545 +263,475 @@
     <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50"></div>
     <div id="scriptureModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-40"></div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, deleteDoc, updateDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Your web app's Firebase configuration will be injected here
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- View Switching ---
+            const landingPage = document.getElementById('landingPage');
+            const libraryApp = document.getElementById('libraryApp');
+            const aboutPage = document.getElementById('aboutPage');
+            const scripturePage = document.getElementById('scripturePage');
+            
+            const enterLibraryBtns = document.querySelectorAll('.enter-library-btn');
+            const homeBtn = document.getElementById('homeBtn');
+            const aboutBtn = document.getElementById('aboutBtn');
+            const scriptureBtnLibrary = document.getElementById('scriptureBtnLibrary');
+            
+            const homeBtnAbout = document.getElementById('homeBtnAbout');
+            const libraryBtnAbout = document.getElementById('libraryBtnAbout');
+            const scriptureBtnAbout = document.getElementById('scriptureBtnAbout');
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        // setLogLevel('debug'); // Uncomment for detailed logs
+            const homeBtnScripture = document.getElementById('homeBtnScripture');
+            const libraryBtnScripture = document.getElementById('libraryBtnScripture');
+            const aboutBtnScripture = document.getElementById('aboutBtnScripture');
 
-        let userId = null;
-        let booksCollectionRef = null;
-        let unsubscribeBooks = null; // To store the listener cleanup function
-
-        // --- View Switching ---
-        const landingPage = document.getElementById('landingPage');
-        const libraryApp = document.getElementById('libraryApp');
-        const aboutPage = document.getElementById('aboutPage');
-        const scripturePage = document.getElementById('scripturePage');
-        
-        const enterLibraryBtns = document.querySelectorAll('.enter-library-btn');
-        const homeBtn = document.getElementById('homeBtn');
-        const aboutBtn = document.getElementById('aboutBtn');
-        const scriptureBtnLibrary = document.getElementById('scriptureBtnLibrary');
-        const logoBtnLibrary = document.getElementById('logoBtnLibrary');
-        
-        const homeBtnAbout = document.getElementById('homeBtnAbout');
-        const libraryBtnAbout = document.getElementById('libraryBtnAbout');
-        const scriptureBtnAbout = document.getElementById('scriptureBtnAbout');
-        const logoBtnAbout = document.getElementById('logoBtnAbout');
-
-        const homeBtnScripture = document.getElementById('homeBtnScripture');
-        const libraryBtnScripture = document.getElementById('libraryBtnScripture');
-        const aboutBtnScripture = document.getElementById('aboutBtnScripture');
-        const logoBtnScripture = document.getElementById('logoBtnScripture');
-
-        function showView(viewToShow) {
-            [landingPage, libraryApp, aboutPage, scripturePage].forEach(view => view.classList.add('hidden'));
-            viewToShow.classList.remove('hidden');
-        }
-
-        enterLibraryBtns.forEach(btn => btn.addEventListener('click', () => showView(libraryApp)));
-        homeBtn.addEventListener('click', () => showView(landingPage));
-        aboutBtn.addEventListener('click', () => showView(aboutPage));
-        scriptureBtnLibrary.addEventListener('click', () => showView(scripturePage));
-        logoBtnLibrary.addEventListener('click', () => showView(landingPage));
-        
-        homeBtnAbout.addEventListener('click', () => showView(landingPage));
-        libraryBtnAbout.addEventListener('click', () => showView(libraryApp));
-        scriptureBtnAbout.addEventListener('click', () => showView(scripturePage));
-        logoBtnAbout.addEventListener('click', () => showView(landingPage));
-
-        homeBtnScripture.addEventListener('click', () => showView(landingPage));
-        libraryBtnScripture.addEventListener('click', () => showView(libraryApp));
-        aboutBtnScripture.addEventListener('click', () => showView(aboutPage));
-        logoBtnScripture.addEventListener('click', () => showView(landingPage));
-
-        // --- Library App Logic ---
-        const bookList = document.getElementById('bookList');
-        const addBookBtn = document.getElementById('addBookBtn');
-        const addBookFormContainer = document.getElementById('addBookFormContainer');
-        const bookModal = document.getElementById('bookModal');
-        const filterContainer = document.getElementById('filterContainer');
-        const aiPrompt = document.getElementById('aiPrompt');
-        const aiAddBtn = document.getElementById('aiAddBtn');
-        const aiBtnText = document.getElementById('aiBtnText');
-        const aiLoader = document.getElementById('aiLoader');
-        const confirmationModal = document.getElementById('confirmationModal');
-
-        let currentFilter = 'All';
-        let books = [];
-        
-        const cardColors = ['from-sky-100 to-blue-200', 'from-green-100 to-emerald-200', 'from-purple-100 to-indigo-200', 'from-yellow-100 to-amber-200', 'from-pink-100 to-rose-200', 'from-red-100 to-orange-200'];
-
-        function setupBookListener() {
-            if (unsubscribeBooks) unsubscribeBooks(); // Detach any old listener
-            if (!userId) return;
-
-            booksCollectionRef = collection(db, 'artifacts', appId, 'users', userId, 'books');
-            unsubscribeBooks = onSnapshot(booksCollectionRef, (snapshot) => {
-                books = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderFilters();
-                renderBooks();
-            });
-        }
-        
-        function renderBooks() {
-            if (!bookList) return;
-            bookList.innerHTML = '';
-            const filteredBooks = books.filter(book => currentFilter === 'All' || book.category === currentFilter);
-            if (filteredBooks.length === 0) {
-                bookList.innerHTML = `<p class="text-gray-300 col-span-full text-center">No books found. Add one to get started!</p>`;
-                return;
+            function showView(viewToShow) {
+                [landingPage, libraryApp, aboutPage, scripturePage].forEach(view => view.classList.add('hidden'));
+                viewToShow.classList.remove('hidden');
             }
-            filteredBooks.forEach((book) => {
-                const card = document.createElement('div');
-                const gradient = cardColors[books.indexOf(book) % cardColors.length];
-                card.className = `book-card relative bg-gradient-to-br ${gradient} rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 hover:shadow-2xl hover:-rotate-2 transition-all duration-300 ${book.read ? 'is-read' : ''}`;
+
+            enterLibraryBtns.forEach(btn => btn.addEventListener('click', () => showView(libraryApp)));
+            homeBtn.addEventListener('click', () => showView(landingPage));
+            aboutBtn.addEventListener('click', () => showView(aboutPage));
+            scriptureBtnLibrary.addEventListener('click', () => showView(scripturePage));
+            
+            homeBtnAbout.addEventListener('click', () => showView(landingPage));
+            libraryBtnAbout.addEventListener('click', () => showView(libraryApp));
+            scriptureBtnAbout.addEventListener('click', () => showView(scripturePage));
+
+            homeBtnScripture.addEventListener('click', () => showView(landingPage));
+            libraryBtnScripture.addEventListener('click', () => showView(libraryApp));
+            aboutBtnScripture.addEventListener('click', () => showView(aboutPage));
+
+
+            // --- Library App Logic ---
+            const bookList = document.getElementById('bookList');
+            const addBookBtn = document.getElementById('addBookBtn');
+            const addBookFormContainer = document.getElementById('addBookFormContainer');
+            const bookModal = document.getElementById('bookModal');
+            const filterContainer = document.getElementById('filterContainer');
+            const aiPrompt = document.getElementById('aiPrompt');
+            const aiAddBtn = document.getElementById('aiAddBtn');
+            const aiBtnText = document.getElementById('aiBtnText');
+            const aiLoader = document.getElementById('aiLoader');
+            const confirmationModal = document.getElementById('confirmationModal');
+
+            let currentFilter = 'All';
+            let books = [
+                { title: "Steve Jobs", author: "Walter Isaacson", category: "Biography", description: "The exclusive biography of Steve Jobs...", pdfLink: "https://www.google.com/books/edition/Steve_Jobs/8U2oAAAAQBAJ" },
+                { title: "Sapiens: A Brief History of Humankind", author: "Yuval Noah Harari", category: "History", description: "A book by Yuval Noah Harari...", pdfLink: "https://www.google.com/books/edition/Sapiens/1v4_CwAAQBAJ" },
+            ];
+            
+            const cardColors = ['from-sky-100 to-blue-200', 'from-green-100 to-emerald-200', 'from-purple-100 to-indigo-200', 'from-yellow-100 to-amber-200', 'from-pink-100 to-rose-200', 'from-red-100 to-orange-200'];
+
+            function renderBooks() {
+                if (!bookList) return;
+                bookList.innerHTML = '';
+                const filteredBooks = books.filter(book => currentFilter === 'All' || book.category === currentFilter);
+                if (filteredBooks.length === 0) {
+                    bookList.innerHTML = `<p class="text-gray-300 col-span-full text-center">No books found in this category.</p>`;
+                    return;
+                }
+                filteredBooks.forEach((book) => {
+                    const card = document.createElement('div');
+                    const gradient = cardColors[books.indexOf(book) % cardColors.length];
+                    card.className = `book-card relative bg-gradient-to-br ${gradient} rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 hover:shadow-2xl hover:-rotate-2 transition-all duration-300`;
+                    
+                    card.innerHTML = `
+                        <div class="p-6 text-gray-800 cursor-pointer" data-book-title="${book.title}">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2 truncate">${book.title}</h3>
+                            <p class="text-gray-700 font-medium">${book.author}</p>
+                            <p class="text-xs font-semibold text-blue-800 mt-3 inline-block bg-blue-200 px-2 py-1 rounded-full">${book.category}</p>
+                        </div>
+                        <button class="delete-btn absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 rounded-full bg-white/50" data-book-title="${book.title}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                        </button>
+                    `;
+                    bookList.appendChild(card);
+                });
+            }
+            
+            function renderFilters() {
+                if (!filterContainer) return;
+                const categories = ['All', ...new Set(books.map(book => book.category))];
+                filterContainer.innerHTML = '';
+                categories.forEach(category => {
+                    const button = document.createElement('button');
+                    button.className = 'filter-btn text-white font-medium py-2 px-4 rounded-lg transition hover:bg-blue-500';
+                    if (category === currentFilter) button.classList.add('active');
+                    button.textContent = category;
+                    button.addEventListener('click', () => {
+                        currentFilter = category;
+                        renderFilters();
+                        renderBooks();
+                    });
+                    filterContainer.appendChild(button);
+                });
+            }
+
+            function openModal(title) {
+                const book = books.find(b => b.title === title);
+                if (!book) return;
                 
-                card.innerHTML = `
-                    <div class="p-6 text-gray-800 cursor-pointer" data-book-id="${book.id}">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2 truncate">${book.title}</h3>
-                        <p class="text-gray-700 font-medium">${book.author}</p>
-                        <p class="text-xs font-semibold text-blue-800 mt-3 inline-block bg-blue-200 px-2 py-1 rounded-full">${book.category}</p>
-                    </div>
-                    <button class="delete-btn absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 rounded-full bg-white/50" data-book-id="${book.id}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                    </button>
-                    <div class="read-badge hidden absolute top-2 left-2 bg-green-500 text-white rounded-full h-8 w-8 items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                bookModal.innerHTML = `
+                    <div id="modalContent" class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8 relative transform scale-95 text-gray-800">
+                        <div class="absolute top-4 right-4">
+                            <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+                        </div>
+                        <h2 id="modalTitle" class="text-3xl font-bold mb-2">${book.title}</h2>
+                        <p id="modalAuthor" class="text-xl text-gray-700 mb-4">by ${book.author}</p>
+                        <p id="modalCategory" class="text-sm text-white bg-blue-500 inline-block px-3 py-1 rounded-full mb-6">${book.category}</p>
+                        <p id="modalDescription" class="text-gray-600 mb-8">${book.description || "No description provided."}</p>
+                        <div class="flex justify-between items-center">
+                            <a id="modalPdfLink" href="${book.pdfLink || '#'}" target="_blank" rel="noopener noreferrer" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700 transition ${!book.pdfLink ? 'hidden' : ''}">Read Now</a>
+                            <button id="modalDeleteBtn" data-book-title="${book.title}" class="bg-red-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-700 transition">Delete Book</button>
+                        </div>
                     </div>
                 `;
-                bookList.appendChild(card);
-            });
-        }
-        
-        function renderFilters() {
-            if (!filterContainer) return;
-            const categories = ['All', ...new Set(books.map(book => book.category))];
-            filterContainer.innerHTML = '';
-            categories.forEach(category => {
-                const button = document.createElement('button');
-                button.className = 'filter-btn text-white font-medium py-2 px-4 rounded-lg transition hover:bg-blue-500';
-                if (category === currentFilter) button.classList.add('active');
-                button.textContent = category;
-                button.addEventListener('click', () => {
-                    currentFilter = category;
+                
+                bookModal.classList.remove('hidden');
+                bookModal.classList.add('flex');
+                setTimeout(() => {
+                    bookModal.querySelector('#modalContent').classList.remove('scale-95');
+                }, 10);
+
+                bookModal.querySelector('#closeModalBtn').addEventListener('click', closeModal);
+                bookModal.querySelector('#modalDeleteBtn').addEventListener('click', (e) => {
+                    promptForDelete(e.target.dataset.bookTitle);
+                });
+            }
+
+            function closeModal() {
+                const modalContent = bookModal.querySelector('#modalContent');
+                if(modalContent) {
+                    modalContent.classList.add('scale-95');
+                    setTimeout(() => {
+                        bookModal.classList.add('hidden');
+                        bookModal.classList.remove('flex');
+                        bookModal.innerHTML = '';
+                    }, 300);
+                }
+            }
+
+            function showAddForm() {
+                addBookFormContainer.innerHTML = `
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8 overflow-y-auto max-h-screen">
+                        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Add a New Book</h2>
+                        <form id="addBookForm">
+                            <div class="mb-4">
+                                <label for="title" class="block text-gray-700 font-medium mb-2">Book Title</label>
+                                <input type="text" id="title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="author" class="block text-gray-700 font-medium mb-2">Author</label>
+                                <input type="text" id="author" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="category" class="block text-gray-700 font-medium mb-2">Category (or add a new one)</label>
+                                <input list="category-list" id="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <datalist id="category-list"></datalist>
+                            </div>
+                            <div class="mb-4">
+                                <label for="pdfLink" class="block text-gray-700 font-medium mb-2">PDF/Preview Link (Optional)</label>
+                                <input type="url" id="pdfLink" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://example.com/book.pdf">
+                            </div>
+                            <div class="mb-6">
+                                <label for="description" class="block text-gray-700 font-medium mb-2">Description (Optional)</label>
+                                <textarea id="description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                            <div class="flex justify-end gap-4">
+                                <button type="button" id="cancelAddBtn" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition">Cancel</button>
+                                <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Add Book</button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+                addBookFormContainer.classList.remove('hidden');
+                
+                const categoryList = addBookFormContainer.querySelector('#category-list');
+                categoryList.innerHTML = '';
+                [...new Set(books.map(book => book.category))].forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    categoryList.appendChild(option);
+                });
+                
+                addBookFormContainer.querySelector('#cancelAddBtn').addEventListener('click', hideAddForm);
+                addBookFormContainer.querySelector('#addBookForm').addEventListener('submit', handleAddBook);
+            }
+
+            function hideAddForm() {
+                addBookFormContainer.classList.add('hidden');
+                addBookFormContainer.innerHTML = '';
+            }
+
+            function handleAddBook(e) {
+                e.preventDefault();
+                const title = e.target.querySelector('#title').value.trim();
+                const author = e.target.querySelector('#author').value.trim();
+                const category = e.target.querySelector('#category').value.trim();
+                const description = e.target.querySelector('#description').value.trim();
+                const pdfLink = e.target.querySelector('#pdfLink').value.trim();
+                if (title && author && category) {
+                    books.push({ title, author, category, description, pdfLink });
+                    if (currentFilter !== 'All' && currentFilter !== category) {
+                        currentFilter = category;
+                    }
                     renderFilters();
                     renderBooks();
+                    hideAddForm();
+                }
+            }
+
+            function promptForDelete(title) {
+                confirmationModal.innerHTML = `
+                    <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-auto text-center">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Are you sure?</h3>
+                        <p class="text-gray-600 mb-6">Do you really want to delete this book? This action cannot be undone.</p>
+                        <div class="flex justify-center gap-4">
+                            <button id="cancelDeleteBtn" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition">Cancel</button>
+                            <button id="confirmDeleteBtn" data-book-title="${title}" class="bg-red-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-700 transition">Delete</button>
+                        </div>
+                    </div>
+                `;
+                confirmationModal.classList.remove('hidden');
+                confirmationModal.querySelector('#cancelDeleteBtn').addEventListener('click', () => confirmationModal.classList.add('hidden'));
+                confirmationModal.querySelector('#confirmDeleteBtn').addEventListener('click', (e) => {
+                    deleteBook(e.target.dataset.bookTitle);
                 });
-                filterContainer.appendChild(button);
-            });
-        }
-
-        function openModal(bookId) {
-            const book = books.find(b => b.id === bookId);
-            if (!book) return;
-            
-            const readButtonClass = book.read ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700';
-            const readButtonText = book.read ? 'Mark as Unread' : 'Mark as Read';
-
-            bookModal.innerHTML = `
-                <div id="modalContent" class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8 relative transform scale-95 text-gray-800">
-                    <div class="absolute top-4 right-4">
-                        <button id="closeModalBtn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
-                    </div>
-                    <h2 id="modalTitle" class="text-3xl font-bold mb-2">${book.title}</h2>
-                    <p id="modalAuthor" class="text-xl text-gray-700 mb-4">by ${book.author}</p>
-                    <p id="modalCategory" class="text-sm text-white bg-blue-500 inline-block px-3 py-1 rounded-full mb-6">${book.category}</p>
-                    <p id="modalDescription" class="text-gray-600 mb-8">${book.description || "No description provided."}</p>
-                    <div class="flex justify-between items-center flex-wrap gap-4">
-                        <a id="modalPdfLink" href="${book.pdfLink || '#'}" target="_blank" rel="noopener noreferrer" class="bg-green-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-green-700 transition ${!book.pdfLink ? 'hidden' : ''}">Read Now</a>
-                        <button id="toggleReadBtn" data-book-id="${book.id}" class="${readButtonClass} text-white font-semibold py-2 px-5 rounded-lg transition">${readButtonText}</button>
-                        <button id="modalDeleteBtn" data-book-id="${book.id}" class="bg-red-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-red-700 transition">Delete</button>
-                    </div>
-                </div>
-            `;
-            
-            bookModal.classList.remove('hidden');
-            bookModal.classList.add('flex');
-            setTimeout(() => {
-                bookModal.querySelector('#modalContent').classList.remove('scale-95');
-            }, 10);
-
-            bookModal.querySelector('#closeModalBtn').addEventListener('click', closeModal);
-            bookModal.querySelector('#modalDeleteBtn').addEventListener('click', (e) => {
-                promptForDelete(e.target.dataset.bookId);
-            });
-            bookModal.querySelector('#toggleReadBtn').addEventListener('click', (e) => {
-                toggleReadStatus(e.target.dataset.bookId);
-            });
-        }
-
-        function closeModal() {
-            const modalContent = bookModal.querySelector('#modalContent');
-            if(modalContent) {
-                modalContent.classList.add('scale-95');
-                setTimeout(() => {
-                    bookModal.classList.add('hidden');
-                    bookModal.classList.remove('flex');
-                    bookModal.innerHTML = '';
-                }, 300);
             }
-        }
-        
-        async function toggleReadStatus(bookId) {
-            const book = books.find(b => b.id === bookId);
-            if (book) {
-                const bookRef = doc(booksCollectionRef, bookId);
-                await updateDoc(bookRef, { read: !book.read });
+
+            function deleteBook(title) {
+                books = books.filter(book => book.title !== title);
+                renderBooks();
+                renderFilters();
+                confirmationModal.classList.add('hidden');
+                closeModal();
             }
-            closeModal();
-        }
 
-        function showAddForm() {
-            addBookFormContainer.innerHTML = `
-                <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8 overflow-y-auto max-h-screen">
-                    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Add a New Book</h2>
-                    <form id="addBookForm">
-                        <div class="mb-4">
-                            <label for="title" class="block text-gray-700 font-medium mb-2">Book Title</label>
-                            <input type="text" id="title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                        <div class="mb-4">
-                            <label for="author" class="block text-gray-700 font-medium mb-2">Author</label>
-                            <input type="text" id="author" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                        <div class="mb-4">
-                            <label for="category" class="block text-gray-700 font-medium mb-2">Category (or add a new one)</label>
-                            <input list="category-list" id="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                            <datalist id="category-list"></datalist>
-                        </div>
-                        <div class="mb-4">
-                            <label for="pdfLink" class="block text-gray-700 font-medium mb-2">PDF/Preview Link (Optional)</label>
-                            <input type="url" id="pdfLink" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://example.com/book.pdf">
-                        </div>
-                        <div class="mb-6">
-                            <label for="description" class="block text-gray-700 font-medium mb-2">Description (Optional)</label>
-                            <textarea id="description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                        </div>
-                        <div class="flex justify-end gap-4">
-                            <button type="button" id="cancelAddBtn" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition">Cancel</button>
-                            <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition">Add Book</button>
-                        </div>
-                    </form>
-                </div>
-            `;
-            addBookFormContainer.classList.remove('hidden');
-            
-            const categoryList = addBookFormContainer.querySelector('#category-list');
-            categoryList.innerHTML = '';
-            [...new Set(books.map(book => book.category))].forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                categoryList.appendChild(option);
-            });
-            
-            addBookFormContainer.querySelector('#cancelAddBtn').addEventListener('click', hideAddForm);
-            addBookFormContainer.querySelector('#addBookForm').addEventListener('submit', handleAddBook);
-        }
-
-        function hideAddForm() {
-            addBookFormContainer.classList.add('hidden');
-            addBookFormContainer.innerHTML = '';
-        }
-
-        async function handleAddBook(e) {
-            e.preventDefault();
-            const newBook = {
-                title: e.target.querySelector('#title').value.trim(),
-                author: e.target.querySelector('#author').value.trim(),
-                category: e.target.querySelector('#category').value.trim(),
-                description: e.target.querySelector('#description').value.trim(),
-                pdfLink: e.target.querySelector('#pdfLink').value.trim(),
-                read: false
-            };
-            if (newBook.title && newBook.author && newBook.category) {
-                await addDoc(booksCollectionRef, newBook);
-                hideAddForm();
-            }
-        }
-
-        function promptForDelete(bookId) {
-            confirmationModal.innerHTML = `
-                <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-auto text-center">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4">Are you sure?</h3>
-                    <p class="text-gray-600 mb-6">Do you really want to delete this book? This action cannot be undone.</p>
-                    <div class="flex justify-center gap-4">
-                        <button id="cancelDeleteBtn" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition">Cancel</button>
-                        <button id="confirmDeleteBtn" data-book-id="${bookId}" class="bg-red-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-700 transition">Delete</button>
-                    </div>
-                </div>
-            `;
-            confirmationModal.classList.remove('hidden');
-            confirmationModal.querySelector('#cancelDeleteBtn').addEventListener('click', () => confirmationModal.classList.add('hidden'));
-            confirmationModal.querySelector('#confirmDeleteBtn').addEventListener('click', (e) => {
-                deleteBook(e.target.dataset.bookId);
-            });
-        }
-
-        async function deleteBook(bookId) {
-            await deleteDoc(doc(booksCollectionRef, bookId));
-            confirmationModal.classList.add('hidden');
-            closeModal();
-        }
-
-        async function handleAiAdd() {
-            const prompt = aiPrompt.value.trim();
-            if (!prompt) return;
-            aiBtnText.classList.add('hidden');
-            aiLoader.classList.remove('hidden');
-            aiAddBtn.disabled = true;
-            try {
-                const chatHistory = [{ role: "user", parts: [{ text: `Generate a list of books based on the following prompt: "${prompt}". Provide the response as a JSON array of objects, each with "title", "author", "category", "description", and an optional "pdfLink" field for a relevant online preview or PDF.` }] }];
-                const payload = {
-                    contents: chatHistory,
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: { "title": { "type": "STRING" }, "author": { "type": "STRING" }, "category": { "type": "STRING" }, "description": { "type": "STRING" }, "pdfLink": {"type": "STRING"} },
-                                required: ["title", "author", "category", "description"]
+            async function handleAiAdd() {
+                const prompt = aiPrompt.value.trim();
+                if (!prompt) return;
+                aiBtnText.classList.add('hidden');
+                aiLoader.classList.remove('hidden');
+                aiAddBtn.disabled = true;
+                try {
+                    const chatHistory = [{ role: "user", parts: [{ text: `Generate a list of books based on the following prompt: "${prompt}". Provide the response as a JSON array of objects, each with "title", "author", "category", "description", and an optional "pdfLink" field for a relevant online preview or PDF.` }] }];
+                    const payload = {
+                        contents: chatHistory,
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: { "title": { "type": "STRING" }, "author": { "type": "STRING" }, "category": { "type": "STRING" }, "description": { "type": "STRING" }, "pdfLink": {"type": "STRING"} },
+                                    required: ["title", "author", "category", "description"]
+                                }
                             }
                         }
+                    };
+                    const apiKey = "AIzaSyD6kZtsCBwNR1FVRFOTiEvfjhOy4TJFpIM";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates?.[0]?.content?.parts?.[0]) {
+                        const newBooks = JSON.parse(result.candidates[0].content.parts[0].text);
+                        newBooks.forEach(newBook => {
+                            if (!books.some(book => book.title.toLowerCase() === newBook.title.toLowerCase())) {
+                                books.push(newBook);
+                            }
+                        });
+                        renderFilters();
+                        renderBooks();
+                        aiPrompt.value = '';
+                    } else {
+                        console.error("Unexpected API response structure:", result);
+                        alert("The AI returned an unexpected response.");
                     }
-                };
-                const apiKey = "AIzaSyD6kZtsCBwNR1FVRFOTiEvfjhOy4TJFpIM";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
-                const result = await response.json();
-                if (result.candidates?.[0]?.content?.parts?.[0]) {
-                    const newBooks = JSON.parse(result.candidates[0].content.parts[0].text);
-                    for (const book of newBooks) {
-                        const bookExists = books.some(b => b.title.toLowerCase() === book.title.toLowerCase());
-                        if (!bookExists) {
-                            await addDoc(booksCollectionRef, { ...book, read: false });
-                        }
-                    }
-                    aiPrompt.value = '';
-                } else {
-                    console.error("Unexpected API response structure:", result);
-                    alert("The AI returned an unexpected response.");
+                } catch (error) {
+                    console.error('Error fetching from Gemini API:', error);
+                    alert('An error occurred while fetching books from the AI.');
+                } finally {
+                    aiBtnText.classList.remove('hidden');
+                    aiLoader.classList.add('hidden');
+                    aiAddBtn.disabled = false;
                 }
-            } catch (error) {
-                console.error('Error fetching from Gemini API:', error);
-                alert('An error occurred while fetching books from the AI.');
-            } finally {
-                aiBtnText.classList.remove('hidden');
-                aiLoader.classList.add('hidden');
-                aiAddBtn.disabled = false;
             }
-        }
-        
-        // --- Scripture Study Logic ---
-        const oldTestamentGrid = document.getElementById('oldTestamentGrid');
-        const newTestamentGrid = document.getElementById('newTestamentGrid');
-        const scriptureModal = document.getElementById('scriptureModal');
-        const scriptureFilterContainer = document.getElementById('scriptureFilterContainer');
-        const oldTestamentTitle = document.getElementById('oldTestamentTitle');
-        const newTestamentTitle = document.getElementById('newTestamentTitle');
-        const versionSelect = document.getElementById('versionSelect');
+            
+            // --- Scripture Study Logic ---
+            const oldTestamentGrid = document.getElementById('oldTestamentGrid');
+            const newTestamentGrid = document.getElementById('newTestamentGrid');
+            const scriptureModal = document.getElementById('scriptureModal');
+            const scriptureFilterContainer = document.getElementById('scriptureFilterContainer');
+            const oldTestamentTitle = document.getElementById('oldTestamentTitle');
+            const newTestamentTitle = document.getElementById('newTestamentTitle');
+            const versionSelect = document.getElementById('versionSelect');
 
-        let currentScriptureCategory = 'All Books';
-        let currentBibleVersion = 'kjv';
+            let currentScriptureCategory = 'All Books';
+            let currentBibleVersion = 'kjv';
 
-        const scriptureCategories = {
-            "Finance & Stewardship": ["Proverbs", "Malachi", "Luke", "2 Corinthians", "Haggai"],
-            "Faith & Trust": ["Genesis", "Psalms", "Proverbs", "Isaiah", "Habakkuk", "Matthew", "Romans", "Hebrews", "James"],
-            "Love & Compassion": ["Song of Solomon", "Luke", "John", "Romans", "1 Corinthians", "Galatians", "Ephesians", "1 John"],
-            "Wisdom & Guidance": ["Job", "Psalms", "Proverbs", "Ecclesiastes", "James"],
-            "Law & History": ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "Acts"],
-            "Prophecy & End Times": ["Isaiah", "Jeremiah", "Ezekiel", "Daniel", "Revelation"]
-        };
+            const scriptureCategories = {
+                "Finance & Stewardship": ["Proverbs", "Malachi", "Luke", "2 Corinthians", "Haggai"],
+                "Faith & Trust": ["Genesis", "Psalms", "Proverbs", "Isaiah", "Habakkuk", "Matthew", "Romans", "Hebrews", "James"],
+                "Love & Compassion": ["Song of Solomon", "Luke", "John", "Romans", "1 Corinthians", "Galatians", "Ephesians", "1 John"],
+                "Wisdom & Guidance": ["Job", "Psalms", "Proverbs", "Ecclesiastes", "James"],
+                "Law & History": ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "Acts"],
+                "Prophecy & End Times": ["Isaiah", "Jeremiah", "Ezekiel", "Daniel", "Revelation"]
+            };
 
-        const bibleBooks = {
-            oldTestament: [
-                { name: "Genesis", chapters: 50 }, { name: "Exodus", chapters: 40 }, { name: "Leviticus", chapters: 27 }, { name: "Numbers", chapters: 36 }, { name: "Deuteronomy", chapters: 34 }, { name: "Joshua", chapters: 24 }, { name: "Judges", chapters: 21 }, { name: "Ruth", chapters: 4 }, { name: "1 Samuel", chapters: 31 }, { name: "2 Samuel", chapters: 24 }, { name: "1 Kings", chapters: 22 }, { name: "2 Kings", chapters: 25 }, { name: "1 Chronicles", chapters: 29 }, { name: "2 Chronicles", chapters: 36 }, { name: "Ezra", chapters: 10 }, { name: "Nehemiah", chapters: 13 }, { name: "Esther", chapters: 10 }, { name: "Job", chapters: 42 }, { name: "Psalms", chapters: 150 }, { name: "Proverbs", chapters: 31 }, { name: "Ecclesiastes", chapters: 12 }, { name: "Song of Solomon", chapters: 8 }, { name: "Isaiah", chapters: 66 }, { name: "Jeremiah", chapters: 52 }, { name: "Lamentations", chapters: 5 }, { name: "Ezekiel", chapters: 48 }, { name: "Daniel", chapters: 12 }, { name: "Hosea", chapters: 14 }, { name: "Joel", chapters: 3 }, { name: "Amos", chapters: 9 }, { name: "Obadiah", chapters: 1 }, { name: "Jonah", chapters: 4 }, { name: "Micah", chapters: 7 }, { name: "Nahum", chapters: 3 }, { name: "Habakkuk", chapters: 3 }, { name: "Zephaniah", chapters: 3 }, { name: "Haggai", chapters: 2 }, { name: "Zechariah", chapters: 14 }, { name: "Malachi", chapters: 4 }
-            ],
-            newTestament: [
-                { name: "Matthew", chapters: 28 }, { name: "Mark", chapters: 16 }, { name: "Luke", chapters: 24 }, { name: "John", chapters: 21 }, { name: "Acts", chapters: 28 }, { name: "Romans", chapters: 16 }, { name: "1 Corinthians", chapters: 16 }, { name: "2 Corinthians", chapters: 13 }, { name: "Galatians", chapters: 6 }, { name: "Ephesians", chapters: 6 }, { name: "Philippians", chapters: 4 }, { name: "Colossians", chapters: 4 }, { name: "1 Thessalonians", chapters: 5 }, { name: "2 Thessalonians", chapters: 3 }, { name: "1 Timothy", chapters: 6 }, { name: "2 Timothy", chapters: 4 }, { name: "Titus", chapters: 3 }, { name: "Philemon", chapters: 1 }, { name: "Hebrews", chapters: 13 }, { name: "James", chapters: 5 }, { name: "1 Peter", chapters: 5 }, { name: "2 Peter", chapters: 3 }, { name: "1 John", chapters: 5 }, { name: "2 John", chapters: 1 }, { name: "3 John", chapters: 1 }, { name: "Jude", chapters: 1 }, { name: "Revelation", chapters: 22 }
-            ]
-        };
+            const bibleBooks = {
+                oldTestament: [
+                    { name: "Genesis", chapters: 50 }, { name: "Exodus", chapters: 40 }, { name: "Leviticus", chapters: 27 }, { name: "Numbers", chapters: 36 }, { name: "Deuteronomy", chapters: 34 }, { name: "Joshua", chapters: 24 }, { name: "Judges", chapters: 21 }, { name: "Ruth", chapters: 4 }, { name: "1 Samuel", chapters: 31 }, { name: "2 Samuel", chapters: 24 }, { name: "1 Kings", chapters: 22 }, { name: "2 Kings", chapters: 25 }, { name: "1 Chronicles", chapters: 29 }, { name: "2 Chronicles", chapters: 36 }, { name: "Ezra", chapters: 10 }, { name: "Nehemiah", chapters: 13 }, { name: "Esther", chapters: 10 }, { name: "Job", chapters: 42 }, { name: "Psalms", chapters: 150 }, { name: "Proverbs", chapters: 31 }, { name: "Ecclesiastes", chapters: 12 }, { name: "Song of Solomon", chapters: 8 }, { name: "Isaiah", chapters: 66 }, { name: "Jeremiah", chapters: 52 }, { name: "Lamentations", chapters: 5 }, { name: "Ezekiel", chapters: 48 }, { name: "Daniel", chapters: 12 }, { name: "Hosea", chapters: 14 }, { name: "Joel", chapters: 3 }, { name: "Amos", chapters: 9 }, { name: "Obadiah", chapters: 1 }, { name: "Jonah", chapters: 4 }, { name: "Micah", chapters: 7 }, { name: "Nahum", chapters: 3 }, { name: "Habakkuk", chapters: 3 }, { name: "Zephaniah", chapters: 3 }, { name: "Haggai", chapters: 2 }, { name: "Zechariah", chapters: 14 }, { name: "Malachi", chapters: 4 }
+                ],
+                newTestament: [
+                    { name: "Matthew", chapters: 28 }, { name: "Mark", chapters: 16 }, { name: "Luke", chapters: 24 }, { name: "John", chapters: 21 }, { name: "Acts", chapters: 28 }, { name: "Romans", chapters: 16 }, { name: "1 Corinthians", chapters: 16 }, { name: "2 Corinthians", chapters: 13 }, { name: "Galatians", chapters: 6 }, { name: "Ephesians", chapters: 6 }, { name: "Philippians", chapters: 4 }, { name: "Colossians", chapters: 4 }, { name: "1 Thessalonians", chapters: 5 }, { name: "2 Thessalonians", chapters: 3 }, { name: "1 Timothy", chapters: 6 }, { name: "2 Timothy", chapters: 4 }, { name: "Titus", chapters: 3 }, { name: "Philemon", chapters: 1 }, { name: "Hebrews", chapters: 13 }, { name: "James", chapters: 5 }, { name: "1 Peter", chapters: 5 }, { name: "2 Peter", chapters: 3 }, { name: "1 John", chapters: 5 }, { name: "2 John", chapters: 1 }, { name: "3 John", chapters: 1 }, { name: "Jude", chapters: 1 }, { name: "Revelation", chapters: 22 }
+                ]
+            };
 
-        function renderScriptureCategoryFilters() {
-            const categories = ["All Books", ...Object.keys(scriptureCategories)];
-            scriptureFilterContainer.innerHTML = '';
-            categories.forEach(category => {
-                const button = document.createElement('button');
-                button.className = 'scripture-filter-btn text-white font-medium py-2 px-4 rounded-lg transition hover:bg-blue-500';
-                if (category === currentScriptureCategory) button.classList.add('active');
-                button.textContent = category;
-                button.addEventListener('click', () => {
-                    currentScriptureCategory = category;
-                    renderScriptureMenu();
-                    renderScriptureCategoryFilters();
+            function renderScriptureCategoryFilters() {
+                const categories = ["All Books", ...Object.keys(scriptureCategories)];
+                scriptureFilterContainer.innerHTML = '';
+                categories.forEach(category => {
+                    const button = document.createElement('button');
+                    button.className = 'scripture-filter-btn text-white font-medium py-2 px-4 rounded-lg transition hover:bg-blue-500';
+                    if (category === currentScriptureCategory) button.classList.add('active');
+                    button.textContent = category;
+                    button.addEventListener('click', () => {
+                        currentScriptureCategory = category;
+                        renderScriptureMenu();
+                        renderScriptureCategoryFilters();
+                    });
+                    scriptureFilterContainer.appendChild(button);
                 });
-                scriptureFilterContainer.appendChild(button);
-            });
-        }
-
-        function renderScriptureMenu() {
-            oldTestamentGrid.innerHTML = '';
-            newTestamentGrid.innerHTML = '';
-
-            const allowedBooks = currentScriptureCategory === 'All Books' ? null : scriptureCategories[currentScriptureCategory];
-            
-            const oldTestamentBooks = bibleBooks.oldTestament.filter(book => !allowedBooks || allowedBooks.includes(book.name));
-            const newTestamentBooks = bibleBooks.newTestament.filter(book => !allowedBooks || allowedBooks.includes(book.name));
-
-            oldTestamentTitle.classList.toggle('hidden', oldTestamentBooks.length === 0);
-            newTestamentTitle.classList.toggle('hidden', newTestamentBooks.length === 0);
-            
-            oldTestamentBooks.forEach(book => oldTestamentGrid.appendChild(createScriptureCard(book)));
-            newTestamentBooks.forEach(book => newTestamentGrid.appendChild(createScriptureCard(book)));
-        }
-
-        function createScriptureCard(book) {
-            const card = document.createElement('div');
-            card.className = 'bg-blue-200 text-blue-900 p-4 rounded-lg text-center font-semibold shadow-md cursor-pointer hover:bg-blue-300 hover:shadow-lg transition';
-            card.textContent = book.name;
-            card.dataset.bookName = book.name;
-            card.dataset.chapters = book.chapters;
-            return card;
-        }
-
-        function openScriptureModal(bookName, chapterCount) {
-            scriptureModal.classList.remove('hidden');
-            let chapterButtonsHTML = '';
-            for (let i = 1; i <= chapterCount; i++) {
-                chapterButtonsHTML += `<button class="chapter-btn bg-gray-200 text-gray-800 w-12 h-12 rounded-md hover:bg-blue-500 hover:text-white transition" data-chapter="${i}">${i}</button>`;
             }
 
-            scriptureModal.innerHTML = `
-                <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl relative text-gray-800 flex flex-col max-h-[90vh]">
-                    <div class="p-4 border-b">
-                        <h2 class="text-2xl font-bold text-center">${bookName}</h2>
-                        <button id="closeScriptureModal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
-                    </div>
-                    <div id="scriptureContent" class="p-6 overflow-y-auto">
-                        <h3 class="text-xl font-semibold mb-4">Select a Chapter</h3>
-                        <div class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
-                            ${chapterButtonsHTML}
+            function renderScriptureMenu() {
+                oldTestamentGrid.innerHTML = '';
+                newTestamentGrid.innerHTML = '';
+
+                const allowedBooks = currentScriptureCategory === 'All Books' ? null : scriptureCategories[currentScriptureCategory];
+                
+                const oldTestamentBooks = bibleBooks.oldTestament.filter(book => !allowedBooks || allowedBooks.includes(book.name));
+                const newTestamentBooks = bibleBooks.newTestament.filter(book => !allowedBooks || allowedBooks.includes(book.name));
+
+                oldTestamentTitle.classList.toggle('hidden', oldTestamentBooks.length === 0);
+                newTestamentTitle.classList.toggle('hidden', newTestamentBooks.length === 0);
+                
+                oldTestamentBooks.forEach(book => oldTestamentGrid.appendChild(createScriptureCard(book)));
+                newTestamentBooks.forEach(book => newTestamentGrid.appendChild(createScriptureCard(book)));
+            }
+
+            function createScriptureCard(book) {
+                const card = document.createElement('div');
+                card.className = 'bg-blue-200 text-blue-900 p-4 rounded-lg text-center font-semibold shadow-md cursor-pointer hover:bg-blue-300 hover:shadow-lg transition';
+                card.textContent = book.name;
+                card.dataset.bookName = book.name;
+                card.dataset.chapters = book.chapters;
+                return card;
+            }
+
+            function openScriptureModal(bookName, chapterCount) {
+                scriptureModal.classList.remove('hidden');
+                let chapterButtonsHTML = '';
+                for (let i = 1; i <= chapterCount; i++) {
+                    chapterButtonsHTML += `<button class="chapter-btn bg-gray-200 text-gray-800 w-12 h-12 rounded-md hover:bg-blue-500 hover:text-white transition" data-chapter="${i}">${i}</button>`;
+                }
+
+                scriptureModal.innerHTML = `
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl relative text-gray-800 flex flex-col max-h-[90vh]">
+                        <div class="p-4 border-b">
+                            <h2 class="text-2xl font-bold text-center">${bookName}</h2>
+                            <button id="closeScriptureModal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+                        </div>
+                        <div id="scriptureContent" class="p-6 overflow-y-auto">
+                            <h3 class="text-xl font-semibold mb-4">Select a Chapter</h3>
+                            <div class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+                                ${chapterButtonsHTML}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-        }
-        
-        async function fetchAndDisplayChapter(bookName, chapterNumber) {
-            const contentDiv = document.getElementById('scriptureContent');
-            contentDiv.innerHTML = '<div class="flex justify-center items-center h-48"><div class="loader"></div></div>';
+                `;
+            }
             
-            try {
-                const response = await fetch(`https://bible-api.com/${bookName}+${chapterNumber}?translation=${currentBibleVersion}`);
-                if (!response.ok) throw new Error('Network response was not ok.');
-                const data = await response.json();
+            async function fetchAndDisplayChapter(bookName, chapterNumber) {
+                const contentDiv = document.getElementById('scriptureContent');
+                contentDiv.innerHTML = '<div class="flex justify-center items-center h-48"><div class="loader"></div></div>';
                 
-                let versesHTML = `<h3 class="text-2xl font-bold mb-4">${data.reference} (${data.translation_name})</h3><div class="space-y-2">`;
-                data.verses.forEach(verse => {
-                    versesHTML += `<p class="verse p-1 cursor-pointer"><strong class="text-blue-700 pr-2">${verse.verse}.</strong>${verse.text.trim()}</p>`;
-                });
-                versesHTML += `</div>`;
-                contentDiv.innerHTML = versesHTML;
-            } catch (error) {
-                console.error("Failed to fetch scripture:", error);
-                contentDiv.innerHTML = `<p class="text-red-500 text-center">Sorry, the scripture text could not be loaded at this time. Please try again later.</p>`;
-            }
-        }
-        
-        // --- Event Delegation for Scripture Page ---
-        scripturePage.addEventListener('click', (e) => {
-            const card = e.target.closest('[data-book-name]');
-            if (card) {
-                openScriptureModal(card.dataset.bookName, card.dataset.chapters);
-            }
-        });
-
-        scriptureModal.addEventListener('click', (e) => {
-            if (e.target.id === 'closeScriptureModal') {
-                scriptureModal.classList.add('hidden');
-            }
-            const chapterBtn = e.target.closest('.chapter-btn');
-            if (chapterBtn) {
-                const bookName = scriptureModal.querySelector('h2').textContent;
-                fetchAndDisplayChapter(bookName, chapterBtn.dataset.chapter);
-            }
-            const verse = e.target.closest('.verse');
-            if (verse) {
-                verse.classList.toggle('highlighted');
-            }
-        });
-        
-        versionSelect.addEventListener('change', (e) => {
-            currentBibleVersion = e.target.value;
-        });
-
-        // --- Event Listeners ---
-        addBookBtn.addEventListener('click', showAddForm);
-        
-        bookList.addEventListener('click', (e) => {
-            const cardBody = e.target.closest('[data-book-id]');
-            const deleteButton = e.target.closest('.delete-btn');
-            if (deleteButton) {
-                e.stopPropagation();
-                promptForDelete(deleteButton.dataset.bookId);
-            } else if (cardBody) {
-                openModal(cardBody.dataset.bookId);
-            }
-        });
-
-        bookModal.addEventListener('click', (e) => { if (e.target === bookModal) closeModal(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !bookModal.classList.contains('hidden')) closeModal(); });
-        aiAddBtn.addEventListener('click', handleAiAdd);
-        aiPrompt.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAiAdd(); });
-
-        document.addEventListener('mousemove', (e) => {
-            document.body.style.setProperty('--mouse-x', e.clientX + 'px');
-            document.body.style.setProperty('--mouse-y', e.clientY + 'px');
-        });
-
-        // --- Firebase Auth Initialization ---
-        onAuthStateChanged(auth, user => {
-            if (user) {
-                userId = user.uid;
-                setupBookListener();
-                showView(landingPage); // Show landing page after login
-            } else {
-                // This case might not be hit if the environment always provides a token,
-                // but it's good practice to handle it.
-                showView(landingPage); // Or a dedicated "logged out" view
-            }
-        });
-
-        async function performSignIn() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                try {
+                    const response = await fetch(`https://bible-api.com/${bookName}+${chapterNumber}?translation=${currentBibleVersion}`);
+                    if (!response.ok) throw new Error('Network response was not ok.');
+                    const data = await response.json();
+                    
+                    let versesHTML = `<h3 class="text-2xl font-bold mb-4">${data.reference} (${data.translation_name})</h3><div class="space-y-2">`;
+                    data.verses.forEach(verse => {
+                        versesHTML += `<p class="verse p-1 cursor-pointer"><strong class="text-blue-700 pr-2">${verse.verse}.</strong>${verse.text.trim()}</p>`;
+                    });
+                    versesHTML += `</div>`;
+                    contentDiv.innerHTML = versesHTML;
+                } catch (error) {
+                    console.error("Failed to fetch scripture:", error);
+                    contentDiv.innerHTML = `<p class="text-red-500 text-center">Sorry, the scripture text could not be loaded at this time. Please try again later.</p>`;
                 }
-            } catch (error) {
-                console.error("Authentication failed:", error);
-                // Handle auth failure (e.g., show an error message)
             }
-        }
+            
+            // --- Event Delegation for Scripture Page ---
+            scripturePage.addEventListener('click', (e) => {
+                const card = e.target.closest('[data-book-name]');
+                if (card) {
+                    openScriptureModal(card.dataset.bookName, card.dataset.chapters);
+                }
+            });
 
-        performSignIn();
-        renderScriptureCategoryFilters();
-        renderScriptureMenu();
+            scriptureModal.addEventListener('click', (e) => {
+                if (e.target.id === 'closeScriptureModal') {
+                    scriptureModal.classList.add('hidden');
+                }
+                const chapterBtn = e.target.closest('.chapter-btn');
+                if (chapterBtn) {
+                    const bookName = scriptureModal.querySelector('h2').textContent;
+                    fetchAndDisplayChapter(bookName, chapterBtn.dataset.chapter);
+                }
+                const verse = e.target.closest('.verse');
+                if (verse) {
+                    verse.classList.toggle('highlighted');
+                }
+            });
+            
+            versionSelect.addEventListener('change', (e) => {
+                currentBibleVersion = e.target.value;
+            });
+
+            // --- Event Listeners ---
+            addBookBtn.addEventListener('click', showAddForm);
+            
+            bookList.addEventListener('click', (e) => {
+                const cardBody = e.target.closest('[data-book-title]');
+                const deleteButton = e.target.closest('.delete-btn');
+                if (deleteButton) {
+                    e.stopPropagation();
+                    promptForDelete(deleteButton.dataset.bookTitle);
+                } else if (cardBody) {
+                    openModal(cardBody.dataset.bookTitle);
+                }
+            });
+
+            bookModal.addEventListener('click', (e) => { if (e.target === bookModal) closeModal(); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !bookModal.classList.contains('hidden')) closeModal(); });
+            aiAddBtn.addEventListener('click', handleAiAdd);
+            aiPrompt.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAiAdd(); });
+
+            document.addEventListener('mousemove', (e) => {
+                document.body.style.setProperty('--mouse-x', e.clientX + 'px');
+                document.body.style.setProperty('--mouse-y', e.clientY + 'px');
+            });
+
+            renderFilters();
+            renderBooks();
+            renderScriptureCategoryFilters();
+            renderScriptureMenu();
+        });
     </script>
 </body>
 </html>
