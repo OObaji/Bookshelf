@@ -67,6 +67,12 @@
             background-color: rgba(250, 204, 21, 0.4); /* yellow-400 with opacity */
             border-radius: 4px;
         }
+        .book-card.is-read {
+            opacity: 0.7;
+        }
+        .book-card.is-read .read-badge {
+            display: flex;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
@@ -136,7 +142,7 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
-                        <span class="font-bold text-xl text-blue-600">BookShelf</span>
+                        <button id="logoBtnLibrary" class="font-bold text-xl text-blue-600">BookShelf</button>
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-4">
@@ -183,7 +189,7 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
-                        <span class="font-bold text-xl text-blue-600">BookShelf</span>
+                        <button id="logoBtnAbout" class="font-bold text-xl text-blue-600">BookShelf</button>
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-4">
@@ -216,7 +222,7 @@
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
-                        <span class="font-bold text-xl text-blue-600">BookShelf</span>
+                        <button id="logoBtnScripture" class="font-bold text-xl text-blue-600">BookShelf</button>
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-4">
@@ -276,14 +282,17 @@
             const homeBtn = document.getElementById('homeBtn');
             const aboutBtn = document.getElementById('aboutBtn');
             const scriptureBtnLibrary = document.getElementById('scriptureBtnLibrary');
+            const logoBtnLibrary = document.getElementById('logoBtnLibrary');
             
             const homeBtnAbout = document.getElementById('homeBtnAbout');
             const libraryBtnAbout = document.getElementById('libraryBtnAbout');
             const scriptureBtnAbout = document.getElementById('scriptureBtnAbout');
+            const logoBtnAbout = document.getElementById('logoBtnAbout');
 
             const homeBtnScripture = document.getElementById('homeBtnScripture');
             const libraryBtnScripture = document.getElementById('libraryBtnScripture');
             const aboutBtnScripture = document.getElementById('aboutBtnScripture');
+            const logoBtnScripture = document.getElementById('logoBtnScripture');
 
             function showView(viewToShow) {
                 [landingPage, libraryApp, aboutPage, scripturePage].forEach(view => view.classList.add('hidden'));
@@ -294,14 +303,17 @@
             homeBtn.addEventListener('click', () => showView(landingPage));
             aboutBtn.addEventListener('click', () => showView(aboutPage));
             scriptureBtnLibrary.addEventListener('click', () => showView(scripturePage));
+            logoBtnLibrary.addEventListener('click', () => showView(landingPage));
             
             homeBtnAbout.addEventListener('click', () => showView(landingPage));
             libraryBtnAbout.addEventListener('click', () => showView(libraryApp));
             scriptureBtnAbout.addEventListener('click', () => showView(scripturePage));
+            logoBtnAbout.addEventListener('click', () => showView(landingPage));
 
             homeBtnScripture.addEventListener('click', () => showView(landingPage));
             libraryBtnScripture.addEventListener('click', () => showView(libraryApp));
             aboutBtnScripture.addEventListener('click', () => showView(aboutPage));
+            logoBtnScripture.addEventListener('click', () => showView(landingPage));
 
 
             // --- Library App Logic ---
@@ -318,8 +330,8 @@
 
             let currentFilter = 'All';
             let books = [
-                { title: "Steve Jobs", author: "Walter Isaacson", category: "Biography", description: "The exclusive biography of Steve Jobs...", pdfLink: "https://www.google.com/books/edition/Steve_Jobs/8U2oAAAAQBAJ" },
-                { title: "Sapiens: A Brief History of Humankind", author: "Yuval Noah Harari", category: "History", description: "A book by Yuval Noah Harari...", pdfLink: "https://www.google.com/books/edition/Sapiens/1v4_CwAAQBAJ" },
+                { title: "Steve Jobs", author: "Walter Isaacson", category: "Biography", description: "The exclusive biography of Steve Jobs...", pdfLink: "https://www.google.com/books/edition/Steve_Jobs/8U2oAAAAQBAJ", read: false },
+                { title: "Sapiens: A Brief History of Humankind", author: "Yuval Noah Harari", category: "History", description: "A book by Yuval Noah Harari...", pdfLink: "https://www.google.com/books/edition/Sapiens/1v4_CwAAQBAJ", read: true },
             ];
             
             const cardColors = ['from-sky-100 to-blue-200', 'from-green-100 to-emerald-200', 'from-purple-100 to-indigo-200', 'from-yellow-100 to-amber-200', 'from-pink-100 to-rose-200', 'from-red-100 to-orange-200'];
@@ -335,7 +347,7 @@
                 filteredBooks.forEach((book) => {
                     const card = document.createElement('div');
                     const gradient = cardColors[books.indexOf(book) % cardColors.length];
-                    card.className = `book-card relative bg-gradient-to-br ${gradient} rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 hover:shadow-2xl hover:-rotate-2 transition-all duration-300`;
+                    card.className = `book-card relative bg-gradient-to-br ${gradient} rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-2 hover:shadow-2xl hover:-rotate-2 transition-all duration-300 ${book.read ? 'is-read' : ''}`;
                     
                     card.innerHTML = `
                         <div class="p-6 text-gray-800 cursor-pointer" data-book-title="${book.title}">
@@ -346,6 +358,9 @@
                         <button class="delete-btn absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 rounded-full bg-white/50" data-book-title="${book.title}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
                         </button>
+                        <div class="read-badge hidden absolute top-2 left-2 bg-green-500 text-white rounded-full h-8 w-8 items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                        </div>
                     `;
                     bookList.appendChild(card);
                 });
@@ -373,6 +388,9 @@
                 const book = books.find(b => b.title === title);
                 if (!book) return;
                 
+                const readButtonClass = book.read ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700';
+                const readButtonText = book.read ? 'Mark as Unread' : 'Mark as Read';
+
                 bookModal.innerHTML = `
                     <div id="modalContent" class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-8 relative transform scale-95 text-gray-800">
                         <div class="absolute top-4 right-4">
@@ -382,9 +400,10 @@
                         <p id="modalAuthor" class="text-xl text-gray-700 mb-4">by ${book.author}</p>
                         <p id="modalCategory" class="text-sm text-white bg-blue-500 inline-block px-3 py-1 rounded-full mb-6">${book.category}</p>
                         <p id="modalDescription" class="text-gray-600 mb-8">${book.description || "No description provided."}</p>
-                        <div class="flex justify-between items-center">
-                            <a id="modalPdfLink" href="${book.pdfLink || '#'}" target="_blank" rel="noopener noreferrer" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700 transition ${!book.pdfLink ? 'hidden' : ''}">Read Now</a>
-                            <button id="modalDeleteBtn" data-book-title="${book.title}" class="bg-red-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-700 transition">Delete Book</button>
+                        <div class="flex justify-between items-center flex-wrap gap-4">
+                            <a id="modalPdfLink" href="${book.pdfLink || '#'}" target="_blank" rel="noopener noreferrer" class="bg-green-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-green-700 transition ${!book.pdfLink ? 'hidden' : ''}">Read Now</a>
+                            <button id="toggleReadBtn" data-book-title="${book.title}" class="${readButtonClass} text-white font-semibold py-2 px-5 rounded-lg transition">${readButtonText}</button>
+                            <button id="modalDeleteBtn" data-book-title="${book.title}" class="bg-red-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-red-700 transition">Delete</button>
                         </div>
                     </div>
                 `;
@@ -399,6 +418,9 @@
                 bookModal.querySelector('#modalDeleteBtn').addEventListener('click', (e) => {
                     promptForDelete(e.target.dataset.bookTitle);
                 });
+                bookModal.querySelector('#toggleReadBtn').addEventListener('click', (e) => {
+                    toggleReadStatus(e.target.dataset.bookTitle);
+                });
             }
 
             function closeModal() {
@@ -411,6 +433,15 @@
                         bookModal.innerHTML = '';
                     }, 300);
                 }
+            }
+            
+            function toggleReadStatus(title) {
+                const book = books.find(b => b.title === title);
+                if (book) {
+                    book.read = !book.read;
+                }
+                renderBooks(); // Re-render the book list to show the change
+                closeModal(); // Close the modal after the action
             }
 
             function showAddForm() {
@@ -473,7 +504,7 @@
                 const description = e.target.querySelector('#description').value.trim();
                 const pdfLink = e.target.querySelector('#pdfLink').value.trim();
                 if (title && author && category) {
-                    books.push({ title, author, category, description, pdfLink });
+                    books.push({ title, author, category, description, pdfLink, read: false });
                     if (currentFilter !== 'All' && currentFilter !== category) {
                         currentFilter = category;
                     }
@@ -540,7 +571,7 @@
                         const newBooks = JSON.parse(result.candidates[0].content.parts[0].text);
                         newBooks.forEach(newBook => {
                             if (!books.some(book => book.title.toLowerCase() === newBook.title.toLowerCase())) {
-                                books.push(newBook);
+                                books.push({ ...newBook, read: false });
                             }
                         });
                         renderFilters();
