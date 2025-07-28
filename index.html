@@ -139,7 +139,7 @@
             <div class="mb-8 p-6 bg-white/90 backdrop-blur-sm rounded-lg shadow-md">
                 <h2 class="text-2xl font-semibold mb-4 text-gray-800">Find Your Next Read</h2>
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <input type="text" id="book-search-input" placeholder="e.g., 'add 10 philosophy books'" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input type="text" id="book-search-input" placeholder="e.g., 'Generate 5 psychology books'" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     <button id="book-search-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors duration-300 flex items-center justify-center w-full sm:w-auto">
                         <svg class="search-icon h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         <svg class="loading-spinner animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -230,7 +230,9 @@
             <input type="hidden" id="edit-book-id">
             <div class="mb-4"><label for="edit-book-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label><input type="text" id="edit-book-title" class="w-full p-2 border border-gray-300 rounded-lg"></div>
             <div class="mb-4"><label for="edit-book-author" class="block text-sm font-medium text-gray-700 mb-1">Author</label><input type="text" id="edit-book-author" class="w-full p-2 border border-gray-300 rounded-lg"></div>
-            <div class="mb-6"><label for="edit-book-genre" class="block text-sm font-medium text-gray-700 mb-1">Genre</label><input type="text" id="edit-book-genre" class="w-full p-2 border border-gray-300 rounded-lg"></div>
+            <div class="mb-4"><label for="edit-book-genre" class="block text-sm font-medium text-gray-700 mb-1">Genre/Field</label><input type="text" id="edit-book-genre" class="w-full p-2 border border-gray-300 rounded-lg"></div>
+            <div class="mb-4"><label for="edit-book-topic" class="block text-sm font-medium text-gray-700 mb-1">Topic</label><input type="text" id="edit-book-topic" class="w-full p-2 border border-gray-300 rounded-lg"></div>
+            <div class="mb-6"><label for="edit-book-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea id="edit-book-description" class="w-full p-2 border border-gray-300 rounded-lg" rows="3"></textarea></div>
             <div class="flex justify-end gap-4"><button id="cancel-edit-book-btn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400">Cancel</button><button id="save-edit-book-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save Changes</button></div>
         </div>
     </div>
@@ -425,7 +427,7 @@
             const rawQuery = inputEl.value.trim();
             if (!rawQuery) return;
             toggleLoading(btnEl, true);
-            const addCommandRegex = /^add\s+(\d+)\s+(.+)/i;
+            const addCommandRegex = /^(?:add|generate)\s+(\d+)\s+(.+)/i;
             const match = rawQuery.match(addCommandRegex);
             let items = [];
             try {
@@ -453,8 +455,8 @@
 
         // --- AI API Calls ---
         async function findBooksWithAI(prompt, quantity = 3) {
-            const schema = { type: "ARRAY", items: { type: "OBJECT", properties: { "title": { "type": "STRING" }, "author": { "type": "STRING" }, "genre": { "type": "STRING" } }, required: ["title", "author", "genre"] } };
-            return callGeminiAPI(`Find ${quantity} books based on this query: "${prompt}". The genre should be a single, simple category.`, schema);
+            const schema = { type: "ARRAY", items: { type: "OBJECT", properties: { "title": { "type": "STRING" }, "author": { "type": "STRING" }, "genre": { "type": "STRING" }, "topic": { "type": "STRING" }, "description": { "type": "STRING" } }, required: ["title", "author", "genre", "topic", "description"] } };
+            return callGeminiAPI(`Find ${quantity} books based on this query: "${prompt}". For each book, provide: title, author, genre (a single, simple category like 'Psychology'), topic (a more specific subject), and a brief one-sentence description.`, schema);
         }
         async function findMentorsWithAI(prompt, quantity = 3) {
             const schema = { type: "ARRAY", items: { type: "OBJECT", properties: { "name": { "type": "STRING" }, "field": { "type": "STRING" }, "bio": { "type": "STRING" } }, required: ["name", "field", "bio"] } };
@@ -486,18 +488,27 @@
         }
         async function addAndRenderBook(book) {
             const sanitizedGenre = book.genre ? book.genre.trim().toLowerCase() : 'uncategorized';
-            await addDoc(booksCollectionRef, { title: book.title, author: book.author, genre: sanitizedGenre, read: false, createdAt: new Date() });
+            await addDoc(booksCollectionRef, { 
+                title: book.title, 
+                author: book.author, 
+                genre: sanitizedGenre, 
+                topic: book.topic || '',
+                description: book.description || '',
+                read: false, 
+                createdAt: new Date() 
+            });
         }
         function filterBooksByGenre(genre) { renderList(bookList, allBooks, genre, 'genre', renderBookCard); }
         function renderBookCard(book) {
             const card = createCardElement(book, book.read ? 'border-green-500' : 'border-indigo-500');
             card.innerHTML = `
                 <div>
-                    <h3 class="text-xl font-bold mb-2 text-gray-900">${book.title}</h3>
-                    <p class="text-gray-700 mb-1">by ${book.author}</p>
-                    <p class="text-gray-600 text-sm italic mb-4 capitalize">${book.genre}</p>
+                    <h3 class="text-xl font-bold mb-1 text-gray-900">${book.title}</h3>
+                    <p class="text-gray-700 mb-2 text-sm">by ${book.author}</p>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600 mb-2">${book.topic || 'General'}</p>
+                    <p class="text-gray-600 text-sm mb-4">${book.description || 'No description available.'}</p>
                 </div>
-                <div class="flex justify-end items-center gap-2 mt-4">
+                <div class="flex justify-end items-center gap-2 mt-auto">
                     <button class="toggle-read-btn text-sm font-medium ${book.read ? 'text-yellow-600 hover:text-yellow-700' : 'text-green-600 hover:text-green-700'}">${book.read ? 'Mark Unread' : 'Mark Read'}</button>
                     <button class="edit-btn p-2 text-gray-500 hover:text-indigo-600">${getIconSVG('edit')}</button>
                     <button class="delete-btn p-2 text-gray-500 hover:text-red-600">${getIconSVG('delete')}</button>
@@ -512,11 +523,19 @@
             document.getElementById('edit-book-title').value = book.title;
             document.getElementById('edit-book-author').value = book.author;
             document.getElementById('edit-book-genre').value = book.genre;
+            document.getElementById('edit-book-topic').value = book.topic || '';
+            document.getElementById('edit-book-description').value = book.description || '';
             editBookModal.classList.remove('hidden');
         }
         async function saveBookChanges() {
             const id = document.getElementById('edit-book-id').value;
-            const data = { title: document.getElementById('edit-book-title').value, author: document.getElementById('edit-book-author').value, genre: document.getElementById('edit-book-genre').value.trim().toLowerCase() || 'uncategorized' };
+            const data = { 
+                title: document.getElementById('edit-book-title').value, 
+                author: document.getElementById('edit-book-author').value, 
+                genre: document.getElementById('edit-book-genre').value.trim().toLowerCase() || 'uncategorized',
+                topic: document.getElementById('edit-book-topic').value,
+                description: document.getElementById('edit-book-description').value
+            };
             await updateDoc(doc(booksCollectionRef, id), data);
             editBookModal.classList.add('hidden');
             showToast("Book updated successfully!");
@@ -545,7 +564,7 @@
                     <p class="text-gray-600 text-sm italic mb-3 capitalize">${mentor.field}</p>
                     <p class="text-gray-700 text-sm">${mentor.bio || ''}</p>
                 </div>
-                <div class="flex justify-end items-center gap-2 mt-4">
+                <div class="flex justify-end items-center gap-2 mt-auto">
                     <button class="edit-btn p-2 text-gray-500 hover:text-indigo-600">${getIconSVG('edit')}</button>
                     <button class="delete-btn p-2 text-gray-500 hover:text-red-600">${getIconSVG('delete')}</button>
                 </div>`;
